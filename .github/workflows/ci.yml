@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 構文チェック
+        run: bash -n server-notify.sh lib/core.sh lib/notify.sh lib/checks.sh config.sh.example
+
+      # ubuntu-latest には shellcheck が同梱されている
+      - name: ShellCheck
+        run: shellcheck -x -S style server-notify.sh lib/*.sh config.sh.example tests/run.sh
+
+      # 通知本文の JSON 組み立てと、docker 無しで動くチェックの動作確認
+      - name: テスト
+        run: ./tests/run.sh

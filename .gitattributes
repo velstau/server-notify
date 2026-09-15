@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+*.md diff=markdown
+*.sh text eol=lf
+
+/.github export-ignore
+/tests export-ignore

@@ -1,0 +1,128 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2034  # ここで定義した変数は server-notify.sh が参照する
+# config.sh - server-notify.sh の設定
+#   cp config.sh.example config.sh && chmod 600 config.sh
+#   Webhook URL は秘密情報です。config.sh は Git に含めないこと。
+
+# ============================================================
+# 通知先 (配列。複数指定・複合指定できる)
+#   1.Discord だけ / 3.Google Chat だけ / 1+3 のような複合、いずれも下の配列で表現する
+# ============================================================
+DISCORD_WEBHOOK_URLS=(
+  # "https://discord.com/api/webhooks/xxxxx/yyyyy"
+)
+SLACK_WEBHOOK_URLS=(
+  # "https://hooks.slack.com/services/T000/B000/xxxx"
+)
+GOOGLE_CHAT_WEBHOOK_URLS=(
+  # "https://chat.googleapis.com/v1/spaces/AAAA/messages?key=...&token=..."
+)
+
+NOTIFY_USERNAME="server-notify"   # Discord の表示名
+NOTIFY_TIMEOUT=15                 # 送信タイムアウト(秒)
+NOTIFY_RETRY=3                    # 送信リトライ回数
+
+# ============================================================
+# 実行するチェックと通知の粒度
+# ============================================================
+ENABLED_CHECKS=(ssl disk logdir docker memory load http updates systemd backup)
+
+NOTIFY_LEVEL="ok"        # ok=毎回送る(日次サマリ向け) / warn=WARN以上 / crit=CRITのみ
+REPORT_MODE="full"       # full=全項目を載せる / issues=WARN以上の節だけ載せる
+SUPPRESS_REPEAT_MIN=0    # 同レベルの連投抑制(分)。毎時アラート運用なら 180 など
+
+# ============================================================
+# SSL 証明書
+#   SSL_TARGETS   : 実際に TLS 接続して確認する (証明書がこのサーバー外にあってもよい)
+#   SSL_CERT_FILES: ローカルの PEM ファイル (glob 可)
+# ============================================================
+SSL_TARGETS=(
+  # "example.com"
+  # "www.example.com"
+  # "example.com:8443"      # 443 以外なら :ポート を付ける
+)
+SSL_CERT_FILES=(
+  # "/etc/letsencrypt/live/*/fullchain.pem"
+)
+SSL_WARN_DAYS=21
+SSL_CRIT_DAYS=7
+SSL_TIMEOUT=10
+
+# ============================================================
+# ディスク容量
+# ============================================================
+DISK_MOUNTS=()            # 空配列なら実ファイルシステムを全部見る。例: (/ /mnt/data1)
+DISK_WARN_PCT=80
+DISK_CRIT_PCT=90
+INODE_WARN_PCT=80
+INODE_CRIT_PCT=90
+DISK_TREND=1              # 使用量の履歴を取り、満杯までの日数を予測する
+DISK_TREND_DAYS=14
+DISK_ETA_WARN_DAYS=60
+DISK_ETA_CRIT_DAYS=14
+
+# ============================================================
+# ログフォルダ
+# ============================================================
+LOG_DIRS=(
+  /var/log
+  # /srv/app/logs
+)
+LOGDIR_WARN_MB=2048
+LOGDIR_CRIT_MB=8192
+LOGDIR_TOP_N=5            # 内訳として出す上位件数
+LOGDIR_CHILD_MIN_MB=50    # 内訳に出す下限サイズ
+LOGFILE_WARN_MB=500       # 単体でこれを超えるログファイルは WARN
+LOGFILE_FIND_DEPTH=3
+
+# ============================================================
+# Docker
+# ============================================================
+DOCKER_RECLAIM_WARN_MB=10240    # 削除可能容量がこれを超えたら WARN
+DOCKER_RECLAIM_CRIT_MB=40960
+DOCKER_RESTART_WARN=5           # 再起動回数がこれ以上なら WARN
+# 常時停止させている(使っていない)コンテナは除外する。glob 可
+DOCKER_IGNORE_CONTAINERS=(
+  # "avideo-*"
+  # "streama"
+)
+
+# ============================================================
+# メモリ / 負荷
+# ============================================================
+MEM_WARN_AVAIL_PCT=15
+MEM_CRIT_AVAIL_PCT=7
+SWAP_WARN_PCT=80
+LOAD_WARN_RATIO=1.5       # 5分平均 load / コア数
+LOAD_CRIT_RATIO=3.0
+
+# ============================================================
+# Web サイト死活 ("URL" または "URL|期待するHTTPコード")
+# ============================================================
+HTTP_TARGETS=(
+  # "https://www.example.com/|200"
+  # "http://127.0.0.1:8080/health|200"
+  # "http://127.0.0.1:8000/admin|403"   # 期待コードは 200 以外も指定できる
+)
+HTTP_TIMEOUT=10
+HTTP_SLOW_SEC=3.0
+
+# ============================================================
+# OS 更新 / systemd
+# ============================================================
+UPDATE_WARN_COUNT=50
+UPTIME_WARN_DAYS=180
+SYSTEMD_IGNORE_UNITS=(
+  "snap-core*.mount"
+)
+
+# ============================================================
+# バックアップ鮮度 ("パス" または "パス|許容時間(h)")
+#   ディレクトリを指定した場合は中で最も新しいファイルを見る
+# ============================================================
+BACKUP_PATHS=(
+  # "/var/backups/db.sql.gz|26"
+  # "/var/log/db_sync.log|26"
+  # "/var/backups/daily"          # ディレクトリなら中の最新ファイルを見る
+)
+BACKUP_MAX_AGE_HOURS=26
