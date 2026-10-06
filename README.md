@@ -165,14 +165,6 @@ check_example() {
 - 通知本文はサービスごとの上限（Discord 4000 / Slack 2900 / Google Chat 3900 文字）で自動的に切り詰める。
   対象が多い場合は `REPORT_MODE=issues` を使う。
 
-## ライセンス・権利表記
+## ライセンス
 
-このリポジトリは **閲覧していただくことを目的として** 公開しています。
-
-ライセンスは付与していないため、著作権法の原則どおり著作権者がすべての権利を留保します。
-コードの複製・改変・再配布は許可していません。
-（GitHub 上での fork は、public リポジトリに対して
-[GitHub 利用規約](https://docs.github.com/site-policy/github-terms/github-terms-of-service)
-が許諾している範囲の行為として可能です。）
-
-利用をご希望の場合はご連絡ください。
+[MIT License](LICENSE) です。無料で使え、複製・改変・再配布もできますが、動作の保証はありません。
